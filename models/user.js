@@ -107,6 +107,8 @@ class User {
                                             fbAdmin.database().ref('PendingPaymentsByGroup').child(group.key).child(member.uid).child(group.date).set({ amount: perUserAmount, error: err.message, group: group.key,date });
                                         } else {
                                             fbAdmin.database().ref('transactions').child(member.uid).child(group.date).set({ amount: perUserAmount, charge, group: group.key, received: false, transferredTo: group.uid,date });
+                                            fbAdmin.database().ref('transactions').child(group.uid).child(group.date).set({ amount: perUserAmount, charge, group: group.key, received: true, transferredFrom: member.uid,date });
+
                                         }
                                     }
                                 )
