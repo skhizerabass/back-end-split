@@ -13,6 +13,10 @@ class User {
         return this.document;
     }
 
+    getUserPayout() {
+        return this.document.payout
+    }
+
     async chargeUser(charges) {
         const chargeID = uuid.v4()
         // Charge user with credit card. and push to DB

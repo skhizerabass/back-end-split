@@ -1,23 +1,37 @@
 const uuid = require('uuid')
 
 const fbAdmin = require('../utils/firebase-admin')
-
+const Paypal = require('../utils/paypal-setup')
+const User = require('./user')
 
 module.exports = class Payout {
 
-    constructor(beneficiary, groupID, payer, payoutAmount, userChargeID) {
-        this.id = uuid.v4();
-        this.beneficiary = beneficiary
+    constructor(beneficiaryID, groupID, payer, payoutAmount, userChargeID) {
+        this.id = 'payout-' + parseInt((Math.random() * 1000000000000000).toString())
         this.groupID = groupID
         this.payer = payer
         this.payoutAmount = payoutAmount
         this.userChargeID = userChargeID
+        this.beneficiary = new User(beneficiaryID)
         console.log("NEW PAYOUT INITIATED AT: ", new Date().getTime())
-
-
     }
 
     async execute() {
+        let scope = this
+        let response = await Paypal.executePayout(this.request)
+        // console.log(response.batch_header.payout_batch_id)
+        setTimeout(async () => {
+            let result = await Paypal.getPayoutStatus(response.batch_header.payout_batch_id)
+            let data = {
+                id: scope.id,
+                groupID: scope.groupID,
+                payer: scope.payer,
+                payoutAmount: scope.payoutAmount,
+                userChargeID: scope.userChargeID,
+                paypalData: result.items['0']
+            }
+            fbAdmin.database().ref('payouts').child(this.beneficiary.id).child(this.id).set(data)
+        }, 10000)
         if(!this.validatePayout()) {
             // payout here
             return true;
@@ -45,7 +59,9 @@ module.exports = class Payout {
             });
     }
 
-    initRequest() {
-        
+    async initRequest() {
+        await this.beneficiary.fetchUser()
+        let payoutAccount = this.beneficiary.getUserPayout();
+        this.request = Paypal.createPayoutRequest(this.id, payoutAccount.addressType, this.payoutAmount, payoutAccount.address, this.groupID)
     }
 }

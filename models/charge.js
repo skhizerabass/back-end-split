@@ -16,14 +16,15 @@ module.exports = class Charge {
         return this.groupsToCharge = this.groupsToChargeSnap.val()
     }
 
-    async updateGroupNotCharged(groupSnap) {
+    static async groupCharged(groupID, cycle) {
         let nextChargeDate = null;
-        if(groupSnap.val().cycle === 'Monthly') {
+        if(cycle === 'Monthly') {
             nextChargeDate = new Date().setMonth(new Date().getMonth() + 1)
         } else {
             let day = 60000 * 1440;
             nextChargeDate = new Date().getTime() + day * 7
         }
-        groupSnap.child('cycle').set(nextChargeDate)
+        fbAdmin.database().ref('groups').child(groupID).child('date').set(nextChargeDate)
     }
+
 }

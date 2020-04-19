@@ -16,29 +16,29 @@ const chargeGroups = async () => {
                 // If group has no members,
                 // No charges are deducted and new date to charge the group is set in the group firebase node
                 if(!groupToCharge.members) {
-                    
                     console.log(`NO MEMBERS TO CHARGE FOR groupID ${groupSnap.key}`)
-                    // payout.updateGroupNotCharged(groupSnap)
+                    Charge.groupCharged(groupSnap.key, groupToCharge.cycle)
                     return;
                 }
-
                 groupToCharge.key = groupSnap.key
                 console.log("Key: ", groupToCharge.key)
                 let charges = _calcCharges(groupToCharge)
                 groupSnap.child('members').forEach( memberSnap => {
                     let userToCharge = new User(memberSnap.key)
                     userToCharge.chargeUser(charges)
-                        .then( userChargeID => {
+                        .then( async userChargeID => {
                             if(userChargeID) {
                                 let payout = new Payout(charges.beneficiary, charges.groupID, memberSnap.key,
                                     charges.beneficiaryPayoutAmountPerMember, userChargeID)
+                                await payout.initRequest()
                                 payout.execute().then(result => {
-                                    if(!result) console.log("ERROR WHILE PAYOUT: ", payout);
-                                    else console.log("SUCCESSFUL PAYOUT: ", payout)
+                                    if(!result) console.log("ERROR WHILE PAYOUT");
+                                    else console.log("SUCCESSFUL PAYOUT")
                                 })
                             }
                         });
                 })
+                Charge.groupCharged(groupSnap.key, groupToCharge.cycle);
             })
     }
 }
