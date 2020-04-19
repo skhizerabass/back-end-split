@@ -1,15 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const userModal = require('./models/user');
+
+
 const userRouter = require('./routes/user')
+const payoutRouter = require('./routes/payout')
+
 
 const PORT = 8000
 const app = express();
 app.use(bodyParser.json()); 
 app.use(cors());
 app.listen(PORT)
-
 // userModal.getGroupsToCharge();
 
 // console.log('wow');
@@ -17,6 +19,7 @@ app.listen(PORT)
 //////// Add other routers here /////////
 /////////////////////////////////////////
 app.use('/api/user', userRouter); 
+app.use('/api/payout', payoutRouter);
 /////////////////////////////////////////
 /////////////////////////////////////////
 

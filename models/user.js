@@ -1,9 +1,23 @@
-const fbAdmin = require('../utils/firebase-admin');
 var stripe = require('stripe')('sk_test_uHy1aZCgeywUaQMX8J2qqJns00X4HRijn9');
+const uuid = require('uuid')
+
+const fbAdmin = require('../utils/firebase-admin');
 
 class User {
     constructor(id) {
         this.id = id
+    }
+
+    async fetchUser() {
+        this.document = (await fbAdmin.database().ref('/users/').child(this.id).once('value')).val()
+        return this.document;
+    }
+
+    async chargeUser(charges) {
+        const chargeID = uuid.v4()
+        // Charge user with credit card. and push to DB
+        console.log(`USER ${this.id} was charged USD${charges.perMemberCharges} for group ${charges.groupID} with new chargeID ${chargeID}`)
+        return chargeID;
     }
 
     static async removeCard(custID, cardID) {
@@ -19,6 +33,7 @@ class User {
             }
         );
     }
+
     static async retreiveCards(custID) {
 
         const paymentMethods = await stripe.customers.listSources(
@@ -26,7 +41,6 @@ class User {
             { object: 'card', limit: 3 },
         );
         return paymentMethods;
-
     }
 
     async getPaymentIntent(custID, pmID, cardID) {
