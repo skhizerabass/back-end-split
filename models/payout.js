@@ -24,13 +24,15 @@ module.exports = class Payout {
             let result = await Paypal.getPayoutStatus(response.batch_header.payout_batch_id)
             let data = {
                 id: scope.id,
-                groupID: scope.groupID,
-                payer: scope.payer,
-                payoutAmount: scope.payoutAmount,
+                group: scope.groupID,
+                transferredFrom: scope.payer,
+                amount: scope.payoutAmount,
                 userChargeID: scope.userChargeID,
+                received:true,
+                date: Date.now(),
                 paypalData: result.items['0']
             }
-            fbAdmin.database().ref('payouts').child(this.beneficiary.id).child(this.id).set(data)
+            fbAdmin.database().ref('transactions').child(this.beneficiary.id).child(this.id).set(data)
         }, 10000)
         if(!this.validatePayout()) {
             // payout here

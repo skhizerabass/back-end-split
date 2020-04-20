@@ -5,7 +5,7 @@ const cors = require('cors');
 
 const userRouter = require('./routes/user')
 const payoutRouter = require('./routes/payout')
-
+// const userModal = require('./models/user');
 
 const PORT = 8000
 const app = express();

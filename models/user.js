@@ -20,46 +20,41 @@ class User {
     async chargeUser(charges) {
         const member = await this.fetchUser();
         console.log(charges);
-        const chargeID = uuid.v4();
+        // const chargeID = uuid.v4();
         let date = Date.now();
+        let chargeID = null;
         // Charge user with credit card. and push to DB
         try {
             if (member.card) {
-                    stripe.charges.create(
+               let charge = await stripe.charges.create(
                         {
-                            amount: perUserAmount * 1000,
+                            amount: charges.perMemberCharges * 1000,
                             currency: 'usd',
                             customer: member.stripeID,
                             description: ' Charges ',
-                        },
-                        function (err, charge) {
-                            // asynchronously called
-                            console.log(charge);
-                            if (err) {
-                                // console.log(err.message)
-                                fbAdmin.database().ref('PendingPayments').child(member.uid).child(charges.beneficiary).child(date).set({ amount: charges.perMemberCharges, error: err.message, group: charges.groupID,date });
-                                return false;
-                                // fbAdmin.database().ref('PendingPaymentsByGroup').child(group.key).child(member.uid).child(group.date).set({ amount: perUserAmount, error: err.message, group: group.key,date });
-                            } else {
-                                fbAdmin.database().ref('transactions').child(member.uid).child(charges.beneficiary).child(date).set({ amount: charges.perMemberCharges, charge, group: charges.groupID, received: false, transferredTo: charges.beneficiary,date });
-                                // fbAdmin.database().ref('transactions').child(group.uid).child(group.date).set({ amount: perUserAmount, charge, group: group.key, received: true, transferredFrom: member.uid,date });
-                                return charge.id;
-                                ;
-                            }
-                        }
-                    )
+                        });
+                if(charge){
+                    fbAdmin.database().ref('transactions').child(member.uid).child(charges.beneficiary).child(date).set({ amount: charges.perMemberCharges, charge, group: charges.groupID, received: false, transferredTo: charges.beneficiary,date });
+                    // fbAdmin.database().ref('transactions').child(group.uid).child(group.date).set({ amount: perUserAmount, charge, group: group.key, received: true, transferredFrom: member.uid,date });
+                    chargeID = charge.id;
+                }
+                    
                 
             } else {
                 fbAdmin.database().ref('PendingPayments').child(member.uid).child(charges.beneficiary).child(date).set({ amount: charges.perMemberCharges, error: 'Card not available',date });
-                return false;
+                // return false;
             }
         } catch (ex) {
             console.log(ex, ex.message);
-            return false;
+            fbAdmin.database().ref('PendingPayments').child(member.uid).child(charges.beneficiary).child(date).set({ amount: charges.perMemberCharges, error: err.message, group: charges.groupID,date });
+                 
+            // return false;
             // fbAdmin.database().ref('PendingPayments').child(member.uid).child(group.key).child(group.date).set({ amount: perUserAmount, error: ex.message,date });
 
         }
-        console.log(`USER ${this.id} was charged USD${charges.perMemberCharges} for group ${charges.groupID} with new chargeID ${chargeID}`)
+        console.log('HEYCHARGE',chargeID);
+        return chargeID;
+        // console.log(`USER ${this.id} was charged USD${charges.perMemberCharges} for group ${charges.groupID} with new chargeID ${chargeID}`)
 
     }
 
