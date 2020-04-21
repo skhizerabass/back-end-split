@@ -18,6 +18,7 @@ app.listen(PORT)
 /////////////////////////////////////////
 //////// Add other routers here /////////
 /////////////////////////////////////////
+app.use('/api/test', (req, res) => res.status(200).send('Hello world!'))
 app.use('/api/user', userRouter); 
 app.use('/api/payout', payoutRouter);
 /////////////////////////////////////////
