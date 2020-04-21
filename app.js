@@ -7,20 +7,24 @@ const userRouter = require('./routes/user')
 const payoutRouter = require('./routes/payout')
 // const userModal = require('./models/user');
 
-const PORT = 8000
+const PORT = 6000;
 const app = express();
 app.use(bodyParser.json()); 
 app.use(cors());
-app.listen(PORT)
 // userModal.getGroupsToCharge();
 
 // console.log('wow');
 /////////////////////////////////////////
 //////// Add other routers here /////////
 /////////////////////////////////////////
+app.use('/', (req, res, next) => {
+    console.log("New request: ", new Date());
+    next()
+})
 app.use('/api/test', (req, res) => res.status(200).send('Hello world!'))
 app.use('/api/user', userRouter); 
 app.use('/api/payout', payoutRouter);
+app.listen(PORT, () => console.log("Server started at: ", new Date()))
 /////////////////////////////////////////
 /////////////////////////////////////////
 
